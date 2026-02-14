@@ -1,0 +1,808 @@
+{
+  "Systemy rekonfigurowalne": {
+    "groups": {
+      "7": [
+        {
+          "day": 0,
+          "start_h": 8,
+          "start_m": 0,
+          "end_h": 9,
+          "end_m": 30,
+          "teacher": "Krzysztof Blachut ,",
+          "place": "Sala 107, budynek: C-3 [C3]"
+        }
+      ],
+      "8": [
+        {
+          "day": 0,
+          "start_h": 9,
+          "start_m": 45,
+          "end_h": 11,
+          "end_m": 15,
+          "teacher": "Krzysztof Blachut ,",
+          "place": "Sala 107, budynek: C-3 [C3]"
+        }
+      ],
+      "9": [
+        {
+          "day": 1,
+          "start_h": 9,
+          "start_m": 45,
+          "end_h": 11,
+          "end_m": 15,
+          "teacher": "Krzysztof Blachut ,",
+          "place": "Sala 107, budynek: C-3 [C3]"
+        }
+      ],
+      "2": [
+        {
+          "day": 1,
+          "start_h": 11,
+          "start_m": 30,
+          "end_h": 13,
+          "end_m": 0,
+          "teacher": "Krzysztof Blachut ,",
+          "place": "Sala 107, budynek: C-3 [C3]"
+        }
+      ],
+      "6": [
+        {
+          "day": 2,
+          "start_h": 13,
+          "start_m": 15,
+          "end_h": 14,
+          "end_m": 45,
+          "teacher": "Marcin Kowalczyk ,",
+          "place": "Sala 107, budynek: C-3 [C3]"
+        }
+      ],
+      "3": [
+        {
+          "day": 2,
+          "start_h": 15,
+          "start_m": 0,
+          "end_h": 16,
+          "end_m": 30,
+          "teacher": "Piotr Wzorek ,",
+          "place": "Sala 107, budynek: C-3 [C3]"
+        }
+      ],
+      "4": [
+        {
+          "day": 3,
+          "start_h": 9,
+          "start_m": 45,
+          "end_h": 11,
+          "end_m": 15,
+          "teacher": "Marcin Kowalczyk ,",
+          "place": "Sala 107, budynek: C-3 [C3]"
+        }
+      ],
+      "5": [
+        {
+          "day": 3,
+          "start_h": 11,
+          "start_m": 30,
+          "end_h": 13,
+          "end_m": 0,
+          "teacher": "Marcin Kowalczyk ,",
+          "place": "Sala 107, budynek: C-3 [C3]"
+        }
+      ],
+      "1": [
+        {
+          "day": 3,
+          "start_h": 15,
+          "start_m": 45,
+          "end_h": 17,
+          "end_m": 15,
+          "teacher": "Piotr Wzorek ,",
+          "place": "Sala 107, budynek: C-3 [C3]"
+        }
+      ]
+    },
+    "lecture": [
+      {
+        "day": 1,
+        "start_h": 13,
+        "start_m": 15,
+        "end_h": 14,
+        "end_m": 45,
+        "teacher": "Marek Gorgon ,",
+        "place": "Sala 224, budynek: C-2 [C2]",
+        "online": false
+      }
+    ]
+  },
+  "Systemy wbudowane": {
+    "groups": {
+      "2": [
+        {
+          "day": 0,
+          "start_h": 9,
+          "start_m": 0,
+          "end_h": 11,
+          "end_m": 15,
+          "teacher": "Maciej Rosol ,",
+          "place": "Sala 110, budynek: B-1 [B1]"
+        }
+      ],
+      "1": [
+        {
+          "day": 4,
+          "start_h": 11,
+          "start_m": 30,
+          "end_h": 13,
+          "end_m": 45,
+          "teacher": "Maciej Rosol ,",
+          "place": "Sala 110, budynek: B-1 [B1]"
+        }
+      ],
+      "3": [
+        {
+          "day": 4,
+          "start_h": 14,
+          "start_m": 0,
+          "end_h": 16,
+          "end_m": 15,
+          "teacher": "Maciej Rosol ,",
+          "place": "Sala 110, budynek: B-1 [B1]"
+        }
+      ]
+    },
+    "lecture": [
+      {
+        "day": 0,
+        "start_h": 13,
+        "start_m": 15,
+        "end_h": 14,
+        "end_m": 45,
+        "teacher": "Maciej Rosol ,",
+        "place": "Sala 224, budynek: C-2 [C2]",
+        "online": false
+      }
+    ]
+  },
+  "Robotyka mobilna": {
+    "groups": {
+      "1": [
+        {
+          "day": 0,
+          "start_h": 9,
+          "start_m": 0,
+          "end_h": 11,
+          "end_m": 15,
+          "teacher": "Pawel Skruch ,",
+          "place": "Sala 0.08, budynek: D-2 [D2]"
+        }
+      ],
+      "2": [
+        {
+          "day": 1,
+          "start_h": 15,
+          "start_m": 0,
+          "end_h": 17,
+          "end_m": 15,
+          "teacher": "Mateusz Komorkiewicz ,",
+          "place": "Sala 0.08, budynek: D-2 [D2]"
+        }
+      ],
+      "4": [
+        {
+          "day": 1,
+          "start_h": 17,
+          "start_m": 30,
+          "end_h": 19,
+          "end_m": 45,
+          "teacher": "Mateusz Komorkiewicz ,",
+          "place": "Sala 0.08, budynek: D-2 [D2]"
+        }
+      ],
+      "3": [
+        {
+          "day": 4,
+          "start_h": 9,
+          "start_m": 0,
+          "end_h": 11,
+          "end_m": 15,
+          "teacher": "Mateusz Komorkiewicz ,",
+          "place": "Sala 0.08, budynek: D-2 [D2]"
+        }
+      ],
+      "6": [
+        {
+          "day": 4,
+          "start_h": 11,
+          "start_m": 30,
+          "end_h": 13,
+          "end_m": 45,
+          "teacher": "Mateusz Komorkiewicz ,",
+          "place": "Sala 0.08, budynek: D-2 [D2]"
+        }
+      ],
+      "5": [
+        {
+          "day": 4,
+          "start_h": 14,
+          "start_m": 0,
+          "end_h": 16,
+          "end_m": 15,
+          "teacher": "Mateusz Komorkiewicz ,",
+          "place": "Sala 0.08, budynek: D-2 [D2]"
+        }
+      ]
+    },
+    "lecture": [
+      {
+        "day": 3,
+        "start_h": 8,
+        "start_m": 0,
+        "end_h": 9,
+        "end_m": 30,
+        "teacher": "Pawel Skruch ,",
+        "place": "Sala 429, budynek: C-2 [C2]",
+        "online": false
+      }
+    ]
+  },
+  "Teoria sterowania 2": {
+    "lecture": [
+      {
+        "day": 0,
+        "start_h": 11,
+        "start_m": 30,
+        "end_h": 13,
+        "end_m": 0,
+        "teacher": "Wojciech Mitkowski ,",
+        "place": "Sala 121, budynek: B-1 [B1]",
+        "online": false
+      },
+      {
+        "day": 3,
+        "start_h": 13,
+        "start_m": 15,
+        "end_h": 14,
+        "end_m": 45,
+        "teacher": "Wojciech Mitkowski ,",
+        "place": "Sala 121, budynek: B-1 [B1]",
+        "online": false
+      }
+    ],
+    "groups": {
+      "7": [
+        {
+          "day": 1,
+          "start_h": 9,
+          "start_m": 45,
+          "end_h": 11,
+          "end_m": 15,
+          "teacher": "Dariusz Cieslar ,",
+          "place": "Sala H111, budynek: H-B1B2 [HB1B2]"
+        }
+      ],
+      "4": [
+        {
+          "day": 1,
+          "start_h": 11,
+          "start_m": 30,
+          "end_h": 13,
+          "end_m": 0,
+          "teacher": "Dariusz Cieslar ,",
+          "place": "Sala H111, budynek: H-B1B2 [HB1B2]"
+        }
+      ],
+      "8": [
+        {
+          "day": 2,
+          "start_h": 16,
+          "start_m": 45,
+          "end_h": 18,
+          "end_m": 15,
+          "teacher": "Marcin Szelest ,",
+          "place": "Sala 4.07, budynek: D-2 [D2]"
+        }
+      ],
+      "6": [
+        {
+          "day": 2,
+          "start_h": 16,
+          "start_m": 45,
+          "end_h": 18,
+          "end_m": 15,
+          "teacher": "Maciej Rozewicz ,",
+          "place": "Sala 0.08, budynek: D-2 [D2]"
+        }
+      ],
+      "9": [
+        {
+          "day": 2,
+          "start_h": 18,
+          "start_m": 30,
+          "end_h": 20,
+          "end_m": 0,
+          "teacher": "Marcin Szelest ,",
+          "place": "Sala 4.07, budynek: D-2 [D2]"
+        }
+      ],
+      "5": [
+        {
+          "day": 2,
+          "start_h": 18,
+          "start_m": 30,
+          "end_h": 20,
+          "end_m": 0,
+          "teacher": "Maciej Rozewicz ,",
+          "place": "Sala 0.08, budynek: D-2 [D2]"
+        }
+      ],
+      "1": [
+        {
+          "day": 3,
+          "start_h": 9,
+          "start_m": 45,
+          "end_h": 11,
+          "end_m": 15,
+          "teacher": "Dariusz Cieslar ,",
+          "place": "Sala H111, budynek: H-B1B2 [HB1B2]"
+        }
+      ],
+      "3": [
+        {
+          "day": 3,
+          "start_h": 11,
+          "start_m": 30,
+          "end_h": 13,
+          "end_m": 0,
+          "teacher": "Dariusz Cieslar ,",
+          "place": "Sala H111, budynek: H-B1B2 [HB1B2]"
+        }
+      ],
+      "2": [
+        {
+          "day": 4,
+          "start_h": 9,
+          "start_m": 0,
+          "end_h": 10,
+          "end_m": 30,
+          "teacher": "Wojciech Kreft ,",
+          "place": "Sala H111, budynek: H-B1B2 [HB1B2]"
+        }
+      ]
+    }
+  },
+  "Podstawy business intelligence": {
+    "lecture": [
+      {
+        "day": 0,
+        "start_h": 15,
+        "start_m": 0,
+        "end_h": 16,
+        "end_m": 30,
+        "teacher": "Edyta Kucharska ,",
+        "place": "Sala 429, budynek: C-2 [C2]",
+        "online": false
+      }
+    ],
+    "groups": {
+      "2": [
+        {
+          "day": 0,
+          "start_h": 16,
+          "start_m": 45,
+          "end_h": 18,
+          "end_m": 15,
+          "teacher": "Rafal Mularczyk ,",
+          "place": "Sala 201a, budynek: C-3 [C3]"
+        }
+      ],
+      "1": [
+        {
+          "day": 0,
+          "start_h": 16,
+          "start_m": 45,
+          "end_h": 18,
+          "end_m": 15,
+          "teacher": "Edyta Kucharska ,",
+          "place": "Sala 201, budynek: C-3 [C3]"
+        }
+      ],
+      "3": [
+        {
+          "day": 0,
+          "start_h": 16,
+          "start_m": 45,
+          "end_h": 18,
+          "end_m": 15,
+          "teacher": "Marta Kraszewska ,",
+          "place": "Sala 217, budynek: C-3 [C3]"
+        }
+      ]
+    }
+  },
+  "Zagadnienia przedsiebiorczosci i prawa autorskiego": {
+    "lecture": [
+      {
+        "day": 0,
+        "start_h": 18,
+        "start_m": 30,
+        "end_h": 20,
+        "end_m": 0,
+        "teacher": "Marta Kraszewska ,",
+        "place": "Sala H24, budynek: H-B1B2 [HB1B2]",
+        "online": false
+      }
+    ]
+  },
+  "Sterowniki PLC i systemy SCADA": {
+    "lecture": [
+      {
+        "day": 1,
+        "start_h": 8,
+        "start_m": 0,
+        "end_h": 9,
+        "end_m": 30,
+        "teacher": "Krzysztof Oprzedkiewicz ,",
+        "place": "Sala H24, budynek: H-B1B2 [HB1B2]",
+        "online": false
+      }
+    ],
+    "groups": {
+      "6": [
+        {
+          "day": 1,
+          "start_h": 15,
+          "start_m": 0,
+          "end_h": 17,
+          "end_m": 15,
+          "teacher": "Pawel Rotter ,",
+          "place": "Sala 317c, budynek: B-1 [B1]"
+        }
+      ],
+      "3": [
+        {
+          "day": 1,
+          "start_h": 17,
+          "start_m": 30,
+          "end_h": 19,
+          "end_m": 45,
+          "teacher": "Pawel Rotter ,",
+          "place": "Sala 317c, budynek: B-1 [B1]"
+        }
+      ],
+      "10": [
+        {
+          "day": 2,
+          "start_h": 13,
+          "start_m": 15,
+          "end_h": 15,
+          "end_m": 30,
+          "teacher": "Andrzej Latocha ,",
+          "place": "Sala 317c, budynek: B-1 [B1]"
+        }
+      ],
+      "11": [
+        {
+          "day": 2,
+          "start_h": 15,
+          "start_m": 45,
+          "end_h": 18,
+          "end_m": 0,
+          "teacher": "Andrzej Latocha ,",
+          "place": "Sala 317c, budynek: B-1 [B1]"
+        }
+      ],
+      "8": [
+        {
+          "day": 3,
+          "start_h": 10,
+          "start_m": 45,
+          "end_h": 13,
+          "end_m": 0,
+          "teacher": "Pawel Rotter ,",
+          "place": "Sala 317c, budynek: B-1 [B1]"
+        }
+      ],
+      "5": [
+        {
+          "day": 3,
+          "start_h": 15,
+          "start_m": 0,
+          "end_h": 17,
+          "end_m": 15,
+          "teacher": "Andrzej Latocha ,",
+          "place": "Sala 317c, budynek: B-1 [B1]"
+        }
+      ],
+      "9": [
+        {
+          "day": 3,
+          "start_h": 17,
+          "start_m": 30,
+          "end_h": 19,
+          "end_m": 45,
+          "teacher": "Andrzej Latocha ,",
+          "place": "Sala 317c, budynek: B-1 [B1]"
+        }
+      ],
+      "7": [
+        {
+          "day": 4,
+          "start_h": 9,
+          "start_m": 0,
+          "end_h": 11,
+          "end_m": 15,
+          "teacher": "Pawel Rotter ,",
+          "place": "Sala 317c, budynek: B-1 [B1]"
+        }
+      ],
+      "4": [
+        {
+          "day": 4,
+          "start_h": 11,
+          "start_m": 30,
+          "end_h": 13,
+          "end_m": 45,
+          "teacher": "Pawel Rotter ,",
+          "place": "Sala 317c, budynek: B-1 [B1]"
+        }
+      ],
+      "2": [
+        {
+          "day": 4,
+          "start_h": 15,
+          "start_m": 0,
+          "end_h": 17,
+          "end_m": 15,
+          "teacher": "Marcin Tomczyk ,",
+          "place": "Sala 317c, budynek: B-1 [B1]"
+        }
+      ],
+      "1": [
+        {
+          "day": 4,
+          "start_h": 17,
+          "start_m": 30,
+          "end_h": 19,
+          "end_m": 45,
+          "teacher": "Marcin Tomczyk ,",
+          "place": "Sala 317c, budynek: B-1 [B1]"
+        }
+      ]
+    }
+  },
+  "Uczenie maszynowe": {
+    "groups": {
+      "4": [
+        {
+          "day": 1,
+          "start_h": 9,
+          "start_m": 45,
+          "end_h": 11,
+          "end_m": 15,
+          "teacher": "Kamil Jeziorek ,",
+          "place": "Sala 217, budynek: C-3 [C3]"
+        }
+      ],
+      "6": [
+        {
+          "day": 1,
+          "start_h": 11,
+          "start_m": 30,
+          "end_h": 13,
+          "end_m": 0,
+          "teacher": "Joanna Kwiecien ,",
+          "place": "Sala 201a, budynek: C-3 [C3]"
+        }
+      ],
+      "7": [
+        {
+          "day": 1,
+          "start_h": 15,
+          "start_m": 0,
+          "end_h": 16,
+          "end_m": 30,
+          "teacher": "Bartlomiej Gaweda ,",
+          "place": "Sala 201, budynek: C-3 [C3]"
+        }
+      ],
+      "8": [
+        {
+          "day": 1,
+          "start_h": 16,
+          "start_m": 45,
+          "end_h": 18,
+          "end_m": 15,
+          "teacher": "Jakub Gajda ,",
+          "place": "Sala 217, budynek: C-3 [C3]"
+        }
+      ],
+      "9": [
+        {
+          "day": 1,
+          "start_h": 18,
+          "start_m": 30,
+          "end_h": 20,
+          "end_m": 0,
+          "teacher": "Jakub Gajda ,",
+          "place": "Sala 217, budynek: C-3 [C3]"
+        }
+      ],
+      "3": [
+        {
+          "day": 2,
+          "start_h": 13,
+          "start_m": 15,
+          "end_h": 14,
+          "end_m": 45,
+          "teacher": "Rafal Mularczyk ,",
+          "place": "Sala 217, budynek: C-3 [C3]"
+        }
+      ],
+      "2": [
+        {
+          "day": 2,
+          "start_h": 15,
+          "start_m": 0,
+          "end_h": 16,
+          "end_m": 30,
+          "teacher": "Jakub Gajda ,",
+          "place": "Sala 217, budynek: C-3 [C3]"
+        }
+      ],
+      "5": [
+        {
+          "day": 2,
+          "start_h": 16,
+          "start_m": 45,
+          "end_h": 18,
+          "end_m": 15,
+          "teacher": "Bartlomiej Gaweda ,",
+          "place": "Sala 217, budynek: C-3 [C3]"
+        }
+      ],
+      "1": [
+        {
+          "day": 2,
+          "start_h": 18,
+          "start_m": 30,
+          "end_h": 20,
+          "end_m": 0,
+          "teacher": "Bartlomiej Gaweda ,",
+          "place": "Sala 201a, budynek: C-3 [C3]"
+        }
+      ]
+    },
+    "lecture": [
+      {
+        "day": 2,
+        "start_h": 8,
+        "start_m": 0,
+        "end_h": 9,
+        "end_m": 30,
+        "teacher": "Joanna Kwiecien ,",
+        "place": "Sala on-line, budynek: B-1 [B1]",
+        "online": true
+      }
+    ]
+  },
+  "Komputerowo wspomagane projektowanie systemow sterowania": {
+    "lecture": [
+      {
+        "day": 2,
+        "start_h": 9,
+        "start_m": 45,
+        "end_h": 11,
+        "end_m": 15,
+        "teacher": "Maciej Rosol ,",
+        "place": "Sala on-line, budynek: B-1 [B1]",
+        "online": true
+      }
+    ],
+    "groups": {
+      "2": [
+        {
+          "day": 3,
+          "start_h": 15,
+          "start_m": 0,
+          "end_h": 17,
+          "end_m": 15,
+          "teacher": "Dawid Knapik ,",
+          "place": "Sala 301, budynek: B-1 [B1]"
+        }
+      ],
+      "1": [
+        {
+          "day": 3,
+          "start_h": 17,
+          "start_m": 30,
+          "end_h": 19,
+          "end_m": 45,
+          "teacher": "Dawid Knapik ,",
+          "place": "Sala 301, budynek: B-1 [B1]"
+        }
+      ],
+      "6": [
+        {
+          "day": 4,
+          "start_h": 9,
+          "start_m": 0,
+          "end_h": 11,
+          "end_m": 15,
+          "teacher": "Dawid Knapik ,",
+          "place": "Sala 301, budynek: B-1 [B1]"
+        }
+      ],
+      "4": [
+        {
+          "day": 4,
+          "start_h": 11,
+          "start_m": 30,
+          "end_h": 13,
+          "end_m": 45,
+          "teacher": "Dawid Knapik ,",
+          "place": "Sala 301, budynek: B-1 [B1]"
+        }
+      ],
+      "3": [
+        {
+          "day": 4,
+          "start_h": 14,
+          "start_m": 0,
+          "end_h": 16,
+          "end_m": 15,
+          "teacher": "Dawid Knapik ,",
+          "place": "Sala 301, budynek: B-1 [B1]"
+        }
+      ],
+      "5": [
+        {
+          "day": 4,
+          "start_h": 16,
+          "start_m": 30,
+          "end_h": 18,
+          "end_m": 45,
+          "teacher": "Dawid Knapik ,",
+          "place": "Sala 301, budynek: B-1 [B1]"
+        }
+      ]
+    }
+  },
+  "Problemy decyzyjne robotow autonomicznych": {
+    "groups": {
+      "2": [
+        {
+          "day": 2,
+          "start_h": 14,
+          "start_m": 0,
+          "end_h": 15,
+          "end_m": 30,
+          "teacher": "Przemyslaw Pukocz ,",
+          "place": "Sala 512, budynek: D-8 [D8]"
+        }
+      ],
+      "1": [
+        {
+          "day": 2,
+          "start_h": 18,
+          "start_m": 30,
+          "end_h": 20,
+          "end_m": 0,
+          "teacher": "Andrzej Skulimowski ,",
+          "place": "Sala 512, budynek: D-8 [D8]"
+        }
+      ]
+    },
+    "lecture": [
+      {
+        "day": 3,
+        "start_h": 18,
+        "start_m": 30,
+        "end_h": 20,
+        "end_m": 0,
+        "teacher": "Andrzej Skulimowski ,",
+        "place": "Sala 512, budynek: D-8 [D8]",
+        "online": false
+      }
+    ]
+  }
+}
