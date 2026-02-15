@@ -57,28 +57,113 @@ void WindowClass::DrawLoad(){
     }
     ImGui::SameLine();
     if(ImGui::Button("Clear")){
-        PrintGroups();
+        Clear();
     }
 }
 
 void WindowClass::DrawParameters(){
     if(dataLoaded){
         const auto parameters_height = 1.0f/5.0f*ImGui::GetWindowSize().y;
-        const auto parameters_width = 1.0f/3.0f*ImGui::GetWindowSize().x;
+        const auto parameters_width = 1.0f/4.0f*ImGui::GetWindowSize().x;
         ImVec2 parameters_size(parameters_width, parameters_height);
-        ImGui::BeginChild("Subjects", parameters_size, true);
-        ImGui::Text("Select Subjects");
-            ImGui::BeginChild("Subjects-selector");
-            for(auto i = 0; i < subjects.size(); i++){
-                std::string subject_name = subjects[i].getName();
-                ImGui::Checkbox(subject_name.data(), reinterpret_cast<bool*>(&selected_subjects[i]));
-            }
 
-            ImGui::EndChild();
+        ImGui::BeginChild("Group Details", parameters_size, true);
+        ImGui::Text("Group Details");
+        ImGui::Separator();
+        if(selectedGroup == nullptr){
+            ImGui::Text("Select group to show details.");
+        }
+        else{
+
+            ImGui::Text("Subject: ");
+            ImGui::SameLine();
+            ImGui::Text(selectedGroup->subject->getName().data());
+            ImGui::Text("Group: ");
+            ImGui::SameLine();
+            std::string number = std::to_string(selectedGroup->number);
+            ImGui::Text(number.data());
+            std::string min = std::to_string(selectedGroup->startMin);
+            if(selectedGroup->startMin < 10){
+                min = "0" + std::to_string(selectedGroup->startMin);
+            }
+            std::string start_time = std::to_string(selectedGroup->startHour) + ":" + min;
+            ImGui::Text("Start time: ");
+            ImGui::SameLine();
+            ImGui::Text(start_time.data());
+            min = std::to_string(selectedGroup->endMin);
+            if(selectedGroup->endMin < 10){
+                min = "0" + std::to_string(selectedGroup->endMin);
+            }
+            std::string end_time = std::to_string(selectedGroup->endHour) + ":" + min;
+            ImGui::Text("End time: ");
+            ImGui::SameLine();
+            ImGui::Text(end_time.data());
+            ImGui::Text("Teacher: ");
+            ImGui::SameLine();
+            ImGui::Text(selectedGroup->teacher.data());
+            ImGui::Text("Place: ");
+            ImGui::SameLine();
+            ImGui::Text(selectedGroup->place.data());
+            if(selectedGroup->lecture){
+                ImGui::Text("Lecture");
+                if(selectedGroup->online){
+                    ImGui::SameLine();
+                    ImGui::Text("ONLINE");
+                }
+            }
+        }
         ImGui::EndChild();
 
         ImGui::SameLine();
-        ImGui::BeginChild("Selecting", parameters_size, true);
+        ImGui::BeginChild("Subjects", parameters_size, true);
+        ImGui::Text("Select Subjects");
+        ImGui::Separator();
+        ImGui::BeginChild("Subjects-selector");
+        for(auto i = 0; i < subjects.size(); i++){
+            std::string subject_name = subjects[i].getName();
+            ImGui::Checkbox(subject_name.data(), reinterpret_cast<bool*>(&selected_subjects[i]));
+        }
+
+        ImGui::EndChild();
+        ImGui::EndChild();
+
+        ImGui::SameLine();
+        ImGui::BeginChild("Selecting Mode", parameters_size, true);
+        const auto button_size = ImGui::GetTextLineHeight();
+        ImGui::Text("Selecting Mode");
+        ImGui::Separator();
+        bool change_mode = 0;
+        if(mode == click){
+            ImGui::PushStyleColor(ImGuiCol_Button, group_select_button);
+        }
+        if(ImGui::Button("###details_groups", ImVec2(button_size, button_size))){
+            change_mode = 1;
+        }
+        if(mode == click){
+            ImGui::PopStyleColor();
+        }
+        if(change_mode){
+            mode = click;
+        }
+
+        ImGui::SameLine();
+        ImGui::Text("Select group for details");
+
+        change_mode = 0;
+        if(mode == select_group){
+            ImGui::PushStyleColor(ImGuiCol_Button, group_constant);
+        }
+        if(ImGui::Button("###constant_groups", ImVec2(button_size, button_size))){
+            change_mode = 1;
+        }
+        if(mode == select_group){
+            ImGui::PopStyleColor();
+        }
+        if(change_mode){
+            mode = select_group;
+        }
+
+        ImGui::SameLine();
         ImGui::Text("Select constant groups");
 
         ImGui::EndChild();
@@ -103,7 +188,6 @@ void WindowClass::DrawCalendar(){
     const auto day_width = (window_width - legend_width) / num_days;
     const auto day_height = window_height - 100;
     const auto calendar_height = day_height;
-    const auto row_height = calendar_height/(end_hour - start_hour);
 
     if(dataLoaded){
         if(ImGui::BeginChild("Legend", ImVec2(legend_width, day_height))){
@@ -129,6 +213,8 @@ void WindowClass::DrawCalendar(){
 
         ImGui::EndChild();
         ImGui::SameLine();
+
+        // Draw Days
         for(int i = 0; i < num_days; ++i){
             const auto day_name = weekDays[i];
 
@@ -140,9 +226,12 @@ void WindowClass::DrawCalendar(){
             auto calendar_start_x = ImGui::GetCursorPosX();
             auto calendar_end_y = calendar_start_y + calendar_height;
 
-
+            // Draw groups in calendar
+            auto child_id_iter = 0;
             for(auto& group : groupsInDay[i]){
                 std::string name = group->subject->getName() + " gr. " + std::to_string(group->number);
+                std::string group_name = std::to_string(child_id_iter);
+
                 const float group_start_time = group->startHour * 60.0f + group->startMin;
                 const float group_end_time = group->endHour * 60.0f + group->endMin;
                 const auto pos_y = calendar_start_y + (group_start_time - start_time)*
@@ -154,16 +243,42 @@ void WindowClass::DrawCalendar(){
                 const auto pos_x = calendar_start_x + width * group->renderIndex;
                 const auto subject_id = GetSubjectId(group->subject);
                 const bool selected = selected_subjects[subject_id];
-
+                const auto is_const = group->subject->getSelectedGroup() == group;
                 ImGui::SetCursorPosY(pos_y + tile_margin/2);
                 ImGui::SetCursorPosX(pos_x + tile_margin/2);
-                ImGui::BeginChild(name.data(), ImVec2(width - tile_margin, height - tile_margin), ImGuiChildFlags_Border);
+
+                if(selectedGroup != nullptr && selectedGroup == group){
+                    ImGui::PushStyleColor(ImGuiCol_Border, group_selected_border_color);
+                }
+
+                ImGui::BeginChild((name + group_name).data(), ImVec2(width - tile_margin, height - tile_margin),
+                 ImGuiChildFlags_Border);
+
+                if(selectedGroup != nullptr && selectedGroup == group){
+                    ImGui::PopStyleColor();
+                }
+
                 ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-                ImVec4 bgColor = ImVec4(0.1f, 0.1f, 0.1f, 0.5f);
-
-                if(selected){
-                    bgColor = ImVec4(0.2f, 0.3f, 0.4f, 1.0f);
+                ImVec4 bgColor = group_inactive_bg_color;
+                if(is_const){
+                    bgColor = group_constant;
+                }
+                else if(group->lecture){
+                    if(selected){
+                        bgColor = lecture_active_bg_color;
+                    }
+                    else{
+                        bgColor = lecture_inactive_bg_color;
+                    }
+                }
+                else{
+                    if(selected){
+                        bgColor = group_active_bg_color;
+                    }
+                    else{
+                        bgColor = group_inactive_bg_color;
+                    }
                 }
 
                 ImVec2 p = ImGui::GetWindowPos();
@@ -171,14 +286,42 @@ void WindowClass::DrawCalendar(){
                 draw_list->AddRectFilled(p, ImVec2(p.x + s.x, p.y + s.y), ImGui::ColorConvertFloat4ToU32(bgColor));
 
                 if(!selected){
-                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+                    ImGui::PushStyleColor(ImGuiCol_Text, group_inactive_text_color);
                 }
                 ImGui::TextWrapped(name.data());
+
+                if(group->lecture){
+                    ImGui::SetCursorPosY(ImGui::GetWindowHeight() - ImGui::GetTextLineHeight() - 10);
+                    ImGui::Text("Lecture");
+                    if(group->online){
+                        ImGui::SameLine();
+                        ImGui::Text("ONLINE");
+                    }
+                }
+
                 if(!selected){
                     ImGui::PopStyleColor();
                 }
                 ImGui::EndChild();
+                const auto mouse_pos = ImGui::GetMousePos();
+                const auto is_mouse_hovering = ImGui::IsItemHovered();
 
+                if(is_mouse_hovering && ImGui::IsMouseDown(ImGuiMouseButton_Left)){
+                    if(mode == clickMode::click){
+                        selectedGroup = group;
+                    }
+                    else{
+                        if(!group->lecture){
+                            if(is_const){
+                                group->subject->selectGroup(nullptr);
+                            }
+                            else{
+                                group->subject->selectGroup(group);
+                            }
+                        }
+                    }
+                }
+                child_id_iter++;
            }
             
             ImGui::EndChild();
@@ -200,16 +343,11 @@ void WindowClass::LoadFromFile(std::string filename){
     std::ifstream input(filename);
     json loaded_data;
     loaded_data << input;
-    for(auto& day : groupsInDay){
-        day.clear();
-    }
-    subjects.clear();
-    selected_subjects.clear();
+    Clear();
 
-
-    int iter = 0;
     for (auto& [subject_name, subject_data] : loaded_data.items()) {
         Subject sub(subject_name);
+        // Load groups
         if(subject_data.contains("groups")){
             auto& groups = subject_data["groups"];
             for (auto& [group_id, group_datas] : groups.items()) {
@@ -218,37 +356,50 @@ void WindowClass::LoadFromFile(std::string filename){
                 Group group(id, group_data["start_h"], group_data["start_m"], 
                     group_data["end_h"], group_data["end_m"], group_data["day"]);
                 group.teacher = group_data["teacher"];
-                group.teacher = group_data["place"];
+                group.place = group_data["place"];
                 sub.addGroup(group);
             }
         }
+        // Load lecture
         if(subject_data.contains("lecture")){
             auto& lecture = subject_data["lecture"][0];
             Group group(1, lecture["start_h"], lecture["start_m"], 
                 lecture["end_h"], lecture["end_m"], lecture["day"]);
             group.teacher = lecture["teacher"];
-            group.teacher = lecture["place"];
+            group.place = lecture["place"];
             group.online = lecture["online"];
+            group.lecture = true;
             sub.addLecture(group);
         }
-        if((iter % 2) == 0){
-            selected_subjects.push_back(0);
-
-        }else{
-            selected_subjects.push_back(1);
-        }
-
+        selected_subjects.push_back(1);
         subjects.push_back(sub);
-
-        iter++;
     }
+    // Background calculations
+
+    // Sorting groups by day of the week
     SortGroupsByDay();
+
+    // Sorting groups in week by their start time
     BubblesortGroups();
+
+    // Indexing groups and calculating tile width
     CheckCollisions();
     dataLoaded = true;
 }
 
 void WindowClass::Clear(){
+    // Clear all group pointers
+    for(auto& day : groupsInDay){
+        day.clear();
+    }
+    // Clear subjects
+    subjects.clear();
+
+    // Clear active subjects
+    selected_subjects.clear();
+
+    // Set selected group to nullptr
+    selectedGroup = nullptr;
 }
 
 void WindowClass::SaveToFile(std::string filename){
@@ -331,6 +482,9 @@ void WindowClass::BubblesortGroups(){
     for(auto i = 0; i < num_days; ++i){
         auto& dayGroups = groupsInDay[i];
         const auto day_number = dayGroups.size();
+        if(day_number == 0){
+            return;
+        }
         bool swaped = 0;
         for(auto j = 0; j < day_number - 1; j++){
             for(auto k = 0; k < day_number - j - 1; k++){
@@ -354,37 +508,69 @@ void WindowClass::CheckCollisions(){
     for(auto i = 0; i < num_days; ++i){
         auto& dayGroups = groupsInDay[i];
         const auto day_number = dayGroups.size();
+        if(day_number == 0) continue;
 
-        std::vector<Group*> active;
-        int max_active = 1;
         for(auto j = 0; j < day_number; ++j){
-            Group* group = dayGroups[j];
-            auto start_time = group->startHour * 60 + group->startMin;
-            std::vector<Group*> active_temp;
-            for(auto k = 0; k < active.size(); k++){
-                Group* g = active[k];
-                auto end_time = g->endHour * 60 + g->endMin;
-                if(end_time > start_time){
-                    active_temp.push_back(g);
-                }
-            }
-            active = active_temp;
-
-            active.push_back(group);
-
-            auto count = active.size();
-            if (count > max_active){
-                max_active = count;
-            }
-            for(auto k = 0; k < active.size(); k++){
-                if(active[k]->renderIndex < k){
-                    active[k]->renderIndex = k;
-                }
-            }
+            dayGroups[j]->renderIndex = 0;
+            dayGroups[j]->renderWidth = 1.0f;
         }
-        for(auto j = 0; j < day_number; ++j){
-            Group* group = dayGroups[j];
-            group->renderWidth = 1.0f/static_cast<float>(max_active);
+
+        auto block_start = 0u;
+        while(block_start < day_number){
+            auto block_end = block_start + 1u;
+
+            Group* first = dayGroups[block_start];
+            auto block_max_end = first->endHour * 60 + first->endMin;
+
+            while(block_end < day_number){
+                Group* g = dayGroups[block_end];
+                auto start_time = g->startHour * 60 + g->startMin;
+                auto end_time   = g->endHour * 60 + g->endMin;
+
+                if(start_time >= block_max_end){
+                    break;
+                }
+
+                if(end_time > block_max_end){
+                    block_max_end = end_time;
+                }
+                block_end++;
+            }
+
+            std::vector<int> columns_end;
+
+            for(auto j = block_start; j < block_end; ++j){
+                Group* group = dayGroups[j];
+                auto start_time = group->startHour * 60 + group->startMin;
+                auto end_time   = group->endHour * 60 + group->endMin;
+
+                int chosen_col = -1;
+
+                for(auto c = 0; c < columns_end.size(); ++c){
+                    if(columns_end[c] <= start_time){
+                        chosen_col = (int)c;
+                        break;
+                    }
+                }
+
+                if(chosen_col == -1){
+                    chosen_col = (int)columns_end.size();
+                    columns_end.push_back(end_time);
+                } else {
+                    columns_end[chosen_col] = end_time;
+                }
+
+                group->renderIndex = chosen_col;
+            }
+
+            const auto col_count = (int)columns_end.size();
+            const float w = 1.0f / static_cast<float>(col_count);
+
+            for(auto j = block_start; j < block_end; ++j){
+                dayGroups[j]->renderWidth = w;
+            }
+
+            block_start = block_end;
         }
     }
 }

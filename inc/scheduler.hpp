@@ -18,6 +18,7 @@ struct Group{
     std::string place;
     std::string teacher;
     bool online {false};
+    bool lecture {false};
     void Print() const;
     float renderWidth{1};
     int renderIndex{0};
@@ -27,21 +28,28 @@ struct Group{
 
 class Subject {
 public:
-    Subject(const std::string _name) : name(_name) {};
+    Subject(const std::string _name) : name(_name) { 
+        id = nextId++;
+    };
+    int id;
+    static int nextId;
     Group& getGroup(int index);
+    Group& getLecture();
+    Group* getSelectedGroup();
+    void selectGroup(Group* group);
+    std::string getName();
+
     int getGroupsNumber() const;
+
     void addGroup(Group group);
     void addLecture(Group group);
-    std::string getName();
-    Group& getLecture();
-    int getChosenGroupIndex();
     void Print() const;
     bool operator==(const Subject& other) const {
-        return other.name == name;
+        return other.id == id;
     }
 private: 
     std::vector<Group> groups;
     std::string name;
-    int chosenGroupIndex{0};
+    Group* selectedGroup;
     Group lecture;
 };

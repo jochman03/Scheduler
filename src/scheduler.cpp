@@ -21,7 +21,12 @@ void Subject::addLecture(Group group){
     lecture = group;
 }
 
-std::string Subject::getName(){
+void Subject::selectGroup(Group *group){
+    selectedGroup = group;
+}
+
+std::string Subject::getName()
+{
     return name;
 }
 
@@ -29,8 +34,8 @@ Group &Subject::getLecture(){
     return lecture;
 }
 
-int Subject::getChosenGroupIndex(){
-    return chosenGroupIndex;
+Group *Subject::getSelectedGroup(){
+    return selectedGroup;
 }
 
 void Subject::Print() const{
@@ -43,6 +48,8 @@ void Subject::Print() const{
     std::cout << "---------------" << std::endl;
 }
 
+int Subject::nextId = 0;
+
 void Group::Print() const{
     if(subject){
         std::cout << subject->getName() << " Gr. " << number << std::endl;
@@ -53,3 +60,4 @@ void Group::Print() const{
     std::cout << weekDay << "  "<< startHour << ":" << startMin << " - " << endHour << ":" << endMin << std::endl;
     std::cout << "Width: " << renderWidth << " Index: " << renderIndex << std::endl;
 }
+
