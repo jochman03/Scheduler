@@ -7,6 +7,7 @@
 #include <array>
 
 #include "scheduler.hpp"
+#include "solver.hpp"
 
 enum clickMode {
     click,
@@ -54,6 +55,13 @@ private:
 
     clickMode mode = click;
     Group* selectedGroup = nullptr;
+    
+    Solver _solver;
+    bool view_solution {false};
+    bool include_lectures;
+    bool gotSolution {false};
+    int particles {100};
+    int iterations {200};
 
     void DrawLoad();
     void DrawParameters();
@@ -68,8 +76,9 @@ private:
 
     void PrintGroups();
     void SortGroupsByDay();
-    void BubblesortGroups();
-    void CheckCollisions();
+    void CheckCollisions(std::vector<std::vector<Group*>>& group, bool chosen=false);
+
+    void resetCollidingGroups(Group* group);
 
     int GetSubjectId(Subject* subject);
 };

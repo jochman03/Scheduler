@@ -7,10 +7,12 @@
 #include <fmt/format.h>
 #include <imgui.h>
 #include <implot.h>
+#include <imgui_stdlib.h>
 
 #include "render.hpp"
 #include "json.hpp"
-#include <imgui_stdlib.h>
+#include "solver.hpp"
+#include "scheduler.hpp"
 
 static bool render_text = 0;
 
@@ -74,7 +76,6 @@ void WindowClass::DrawParameters(){
             ImGui::Text("Select group to show details.");
         }
         else{
-
             ImGui::Text("Subject: ");
             ImGui::SameLine();
             ImGui::Text(selectedGroup->subject->getName().data());
@@ -164,14 +165,63 @@ void WindowClass::DrawParameters(){
         }
 
         ImGui::SameLine();
-        ImGui::Text("Select constant groups");
-
+        ImGui::Text("Select fixed groups");
+        ImGui::Text("Info:");
+        ImGui::TextWrapped("Fixed groups are included in solution, but the solver will not replace them with other groups. You may select only one group per subject and selected groups cannot overlap.");
         ImGui::EndChild();
 
         ImGui::SameLine();
         ImGui::BeginChild("Solver", parameters_size, true);
         ImGui::Text("Solver Parameters");
 
+        ImGui::InputInt("Particles", &particles);
+        ImGui::InputInt("Iterations", &iterations);
+        ImGui::Checkbox("Include lectures", &include_lectures);
+
+        if(ImGui::Button("Start simulation")){
+            std::vector<Subject*> chosenSubjects;
+            for(auto i = 0; i < subjects.size(); ++i){
+                if(selected_subjects[i]){
+                    chosenSubjects.push_back(&subjects[i]);
+                }
+            }
+            gotSolution = true;
+            _solver.reset();
+            _solver.setParticles(particles);
+            _solver.setMaxIterations(iterations);
+            _solver.setIncludeLectures(include_lectures);
+            _solver.setSubjects(chosenSubjects);
+            _solver.Init();
+        }
+        if(_solver.isRunning()){
+            _solver.stepIteration();
+        }
+        float progressFraction = static_cast<float>(_solver.getCurrentIteration()) / static_cast<float>(_solver.getMaxIterations());
+        std::string progressText = std::to_string(_solver.getCurrentIteration()) + " / " + std::to_string(_solver.getMaxIterations());
+        ImGui::Text(progressText.data());
+
+        const auto width = ImGui::GetWindowSize().x / 2.0;
+        ImGui::ProgressBar(progressFraction, ImVec2(width, 0));
+
+        if(_solver.hasSolution()){
+            if(gotSolution){
+                _solver.getSolution();
+                view_solution = true;
+                gotSolution = false;
+                std::vector<std::vector<Group*>> groups_temp (num_days);
+                for(auto& subject : subjects){
+                    Group* group = subject.getChosenGroup();
+                    if(group != nullptr){
+                        groups_temp[group->weekDay].push_back(group);
+                    }
+                    Group lecture = subject.getLecture();
+                    groups_temp[lecture.weekDay].push_back(&lecture);
+                }
+                BubblesortGroups(groups_temp);
+                CheckCollisions(groups_temp, true);
+            }            
+            ImGui::Checkbox("View solution", &view_solution);
+        }
         ImGui::EndChild();
     }
 }
@@ -229,6 +279,15 @@ void WindowClass::DrawCalendar(){
             // Draw groups in calendar
             auto child_id_iter = 0;
             for(auto& group : groupsInDay[i]){
+                const auto subject_id = GetSubjectId(group->subject);
+                const bool selected = selected_subjects[subject_id];
+
+                if(view_solution && group != group->subject->getChosenGroup() && !group->lecture){
+                    continue;
+                }
+                else if(view_solution && !selected){
+                    continue;
+                }
                 std::string name = group->subject->getName() + " gr. " + std::to_string(group->number);
                 std::string group_name = std::to_string(child_id_iter);
 
@@ -236,14 +295,18 @@ void WindowClass::DrawCalendar(){
                 const float group_end_time = group->endHour * 60.0f + group->endMin;
                 const auto pos_y = calendar_start_y + (group_start_time - start_time)*
                 (calendar_end_y - calendar_start_y)/(end_time - start_time);
-                const auto width = day_width * group->renderWidth;
+                auto width = day_width * group->renderWidth;
+                auto pos_x = calendar_start_x + width * group->renderIndex;
                 const auto pos_end_y = calendar_start_y + (group_end_time - start_time)*
                 (calendar_end_y - calendar_start_y)/(end_time - start_time);
                 const auto height = pos_end_y - pos_y;
-                const auto pos_x = calendar_start_x + width * group->renderIndex;
-                const auto subject_id = GetSubjectId(group->subject);
-                const bool selected = selected_subjects[subject_id];
-                const auto is_const = group->subject->getSelectedGroup() == group;
+                const auto is_const = group->subject->getFixedGroup() == group;
+
+                if(view_solution){
+                    width = day_width * group->chosenRenderWidth;
+                    pos_x = calendar_start_x + width * group->chosenRenderIndex;
+                }
+
                 ImGui::SetCursorPosY(pos_y + tile_margin/2);
                 ImGui::SetCursorPosX(pos_x + tile_margin/2);
 
@@ -261,15 +324,15 @@ void WindowClass::DrawCalendar(){
                 ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
                 ImVec4 bgColor = group_inactive_bg_color;
-                if(is_const){
+                if(is_const && selected){
                     bgColor = group_constant;
                 }
                 else if(group->lecture){
-                    if(selected){
-                        bgColor = lecture_active_bg_color;
+                    if(!selected || !include_lectures){
+                        bgColor = lecture_inactive_bg_color;
                     }
                     else{
-                        bgColor = lecture_inactive_bg_color;
+                        bgColor = lecture_active_bg_color;
                     }
                 }
                 else{
@@ -310,13 +373,15 @@ void WindowClass::DrawCalendar(){
                     if(mode == clickMode::click){
                         selectedGroup = group;
                     }
-                    else{
-                        if(!group->lecture){
+                    else if(mode == clickMode::select_group){
+                        if(!group->lecture && selected){
                             if(is_const){
-                                group->subject->selectGroup(nullptr);
+                                group->subject->setFixedGroup(nullptr);
                             }
                             else{
-                                group->subject->selectGroup(group);
+                                // unselect all colliding groups
+                                resetCollidingGroups(group);
+                                group->subject->setFixedGroup(group);
                             }
                         }
                     }
@@ -380,10 +445,10 @@ void WindowClass::LoadFromFile(std::string filename){
     SortGroupsByDay();
 
     // Sorting groups in week by their start time
-    BubblesortGroups();
+    BubblesortGroups(groupsInDay);
 
     // Indexing groups and calculating tile width
-    CheckCollisions();
+    CheckCollisions(groupsInDay);
     dataLoaded = true;
 }
 
@@ -400,6 +465,11 @@ void WindowClass::Clear(){
 
     // Set selected group to nullptr
     selectedGroup = nullptr;
+
+    // Reset solver
+    _solver.reset();
+
+    view_solution = false;
 }
 
 void WindowClass::SaveToFile(std::string filename){
@@ -464,7 +534,6 @@ void WindowClass::PrintGroups(){
 
 void WindowClass::SortGroupsByDay(){
     for(auto& sub : subjects){
-        std::cout << sub.getName() << std::endl;
         for (int i = 0; i < sub.getGroupsNumber(); ++i){
             auto& group = sub.getGroup(i);
             group.subject = &sub;
@@ -478,41 +547,23 @@ void WindowClass::SortGroupsByDay(){
     }
 }
 
-void WindowClass::BubblesortGroups(){
+void WindowClass::CheckCollisions(std::vector<std::vector<Group*>>& group, bool chosen){
     for(auto i = 0; i < num_days; ++i){
-        auto& dayGroups = groupsInDay[i];
+        auto& dayGroups = group[i];
         const auto day_number = dayGroups.size();
         if(day_number == 0){
-            return;
-        }
-        bool swaped = 0;
-        for(auto j = 0; j < day_number - 1; j++){
-            for(auto k = 0; k < day_number - j - 1; k++){
-                const auto time1 = dayGroups[k]->startHour * 60 + dayGroups[k]->startMin;
-                const auto time2 = dayGroups[k + 1]->startHour * 60 + dayGroups[k + 1]->startMin;
-                if(time1 > time2){
-                    auto temp = dayGroups[k];
-                    dayGroups[k] = dayGroups[k + 1];
-                    dayGroups[k + 1] = temp;
-                    swaped = 1;
-                }
-            }
-            if(!swaped){
-                break;
-            }
-        }
-    }
-}
-
-void WindowClass::CheckCollisions(){
-    for(auto i = 0; i < num_days; ++i){
-        auto& dayGroups = groupsInDay[i];
-        const auto day_number = dayGroups.size();
-        if(day_number == 0) continue;
+            continue;
+        } 
 
         for(auto j = 0; j < day_number; ++j){
-            dayGroups[j]->renderIndex = 0;
-            dayGroups[j]->renderWidth = 1.0f;
+            if(chosen){
+                dayGroups[j]->chosenRenderIndex = 0;
+                dayGroups[j]->chosenRenderWidth = 1.0f;
+            }
+            else{
+                dayGroups[j]->renderIndex = 0;
+                dayGroups[j]->renderWidth = 1.0f;
+            }
         }
 
         auto block_start = 0u;
@@ -548,29 +599,66 @@ void WindowClass::CheckCollisions(){
 
                 for(auto c = 0; c < columns_end.size(); ++c){
                     if(columns_end[c] <= start_time){
-                        chosen_col = (int)c;
+                        chosen_col = static_cast<int>(c);
                         break;
                     }
                 }
 
                 if(chosen_col == -1){
-                    chosen_col = (int)columns_end.size();
+                    chosen_col = static_cast<int>(columns_end.size());
                     columns_end.push_back(end_time);
                 } else {
                     columns_end[chosen_col] = end_time;
                 }
-
-                group->renderIndex = chosen_col;
+                if(!chosen){
+                    group->renderIndex = chosen_col;
+                }
+                else{
+                    group->chosenRenderIndex = chosen_col;
+                }
             }
 
-            const auto col_count = (int)columns_end.size();
+            const auto col_count = static_cast<int>(columns_end.size());
             const float w = 1.0f / static_cast<float>(col_count);
 
             for(auto j = block_start; j < block_end; ++j){
-                dayGroups[j]->renderWidth = w;
+                if(!chosen){
+                    dayGroups[j]->renderWidth = w;
+                }
+                else{
+                    dayGroups[j]->chosenRenderWidth = w;
+                }
             }
 
             block_start = block_end;
+        }
+    }
+}
+
+void WindowClass::resetCollidingGroups(Group* group){
+    if(group == nullptr){
+        return;
+    }
+    for(auto& subject : subjects){
+        Group* old_group = subject.getFixedGroup();
+        if(old_group != nullptr){
+            if(*old_group == *group){
+                continue;
+            }
+
+            auto day_group1 = group->weekDay;
+
+            auto day_group2 = old_group->weekDay;
+            if(day_group1 == day_group2){
+                auto time_start1 = group->startHour * 60 + group->startMin;
+                auto time_end1 = group->endHour * 60 + group->endMin;
+                auto time_start2 = old_group->startHour * 60 + old_group->startMin;
+                auto time_end2 = old_group->endHour * 60 + old_group->endMin;
+
+                if(time_start1 < time_end2 && time_start2 < time_end1){
+                    subject.setFixedGroup(nullptr);
+                }
+            }
         }
     }
 }

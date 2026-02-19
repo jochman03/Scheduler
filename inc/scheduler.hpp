@@ -8,7 +8,11 @@ class Subject;
 struct Group{
     Group() {};
     Group(int _number, int _startHour, int _startMin, int _endHour, int _endMin, int _weekDay) :
-     number(_number), startHour(_startHour), startMin(_startMin), endHour(_endHour), endMin(_endMin), weekDay(_weekDay) {};
+    number(_number), startHour(_startHour), startMin(_startMin), endHour(_endHour), endMin(_endMin), weekDay(_weekDay) { 
+        id = nextId++;
+    };
+    int id;
+    static int nextId;
     int number;
     int startHour;
     int startMin;
@@ -21,9 +25,16 @@ struct Group{
     bool lecture {false};
     void Print() const;
     float renderWidth{1};
+    float chosenRenderWidth{1};
+
     int renderIndex{0};
+    int chosenRenderIndex{0};
 
     Subject* subject;
+
+    bool operator==(const Group& other) const {
+        return other.id == id;
+    }
 };
 
 class Subject {
@@ -35,8 +46,13 @@ public:
     static int nextId;
     Group& getGroup(int index);
     Group& getLecture();
-    Group* getSelectedGroup();
-    void selectGroup(Group* group);
+    Group* getFixedGroup();
+    int getGroupIndex(Group* group);
+
+    Group* getChosenGroup();
+    void setFixedGroup(Group* group);
+    void setChosenGroup(Group* group);
+
     std::string getName();
 
     int getGroupsNumber() const;
@@ -50,6 +66,9 @@ public:
 private: 
     std::vector<Group> groups;
     std::string name;
-    Group* selectedGroup;
+    Group* fixedGroup {nullptr};
+    Group* chosenGroup {nullptr};
     Group lecture;
 };
+
+void BubblesortGroups(std::vector<std::vector<Group*>>& groupsInDay);
