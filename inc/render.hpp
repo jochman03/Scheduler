@@ -58,10 +58,12 @@ private:
     
     Solver _solver;
     bool view_solution {false};
-    bool include_lectures;
+    bool include_lectures {true};
     bool gotSolution {false};
-    int particles {100};
-    int iterations {200};
+    int iterations {1000};
+    int runs {10};
+    double alpha {0.95};
+    double startTemperature {20000};
 
     void DrawLoad();
     void DrawParameters();

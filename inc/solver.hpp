@@ -2,71 +2,56 @@
 
 #include <vector>
 #include "scheduler.hpp"
-
-struct Particle{
-    Particle(int dimension_number, std::vector<Subject*> subjects) : _dimensionNumber(dimension_number), _position(dimension_number), 
-    _velocity(dimension_number), _subjects(subjects) {};
-    Particle(const Particle& p);
-    Particle();
-    ~Particle();
-
-    static std::vector<double> _globalBestPosition;
-    static double _globalBestValue;
-    static double getBestValue(){
-        return _globalBestValue;
-    }
-    static void resetBestValue(){
-        _globalBestValue  = std::numeric_limits<double>::max();
-        _globalBestPosition = {};
-    }
-    std::vector<double> _position;
-    std::vector<double> _velocity;
-    std::vector<Subject*> _subjects;
-    std::vector<double> _bestPosition;
-
-    double _bestValue;
-    int _dimensionNumber;
-
-    double _maxVelocity {1};
-    
-    void Init();
-    double calculatePosition();
-    double costFun();
-    
-    std::vector<Group*> getSolution();
-
-    // Penalty parameters
-    const double _overlappingPenalty {1e7};
-    const double _dayPenalty {1e5};
-    const double _timePenalty {1e1};
-
-    // Velocity calculation parameters
-    const double _inertion {0.7};
-    const double _localBestAttraction {1.5};
-    const double _globalBestAttraction {1.5};
-
-    bool _includeLectures{false};
-};
+#include <random>
 
 class Solver{
 private:
-    int _particles {100};
     int _maxIterations {100};
     int _currentIteration {0};
+    int _currentRun {0};
+    int _maxRuns{10};
+
     bool _running {false};
     bool _solution {false};
     bool _includeLectures{false};
+    int _dimensionNumber {0};
 
-    std::vector<Group*> _chosenGroups;
+    double _startTemperature {1000};
+    double _currentTemperature {0};
+    double _alpha {0.95};
+
+    double _overlappingPenalty {1e2};
+    double _timePenalty {2e2};
+    double _dayPenalty {1e2};
+
+    double _kMax {3};
+
+    int _wastedTime {0};
+    int _collisions {0};
+    int _wastedDays {0};
+
+    std::vector<int> _currentPosition;
+    double _currentValue {0};
+
+    std::vector<int> _bestPosition;
+    double _bestValue {0};
+
     std::vector<Subject*> _subjects;
-    std::vector<Particle> particles;
+
+    std::uniform_real_distribution<double> _realDist{0.0, 1.0};
+    std::uniform_int_distribution<int> _indexDist;
+    std::uniform_int_distribution<int> _signDist{-1, 1};
+
 public:
-    int& getParticles();
     int& getMaxIterations();
     int& getCurrentIteration();
-    
-    void setParticles(int particles);
+    int& getMaxRuns();
+    int& getCurrentRun();
+    void setStartTemperature(double temperature);
+    void setAlpha(double alpha);
+
     void setMaxIterations(int iterations);
+    void setMaxRuns(int runs);
     void setSubjects(std::vector<Subject*> _subjects);
     void getSolution();
     void setIncludeLectures(bool include);
@@ -75,5 +60,6 @@ public:
     bool hasSolution();
     void stepIteration();
     void reset();
-};
 
+    double costFun(std::vector<int>& position);
+}; 

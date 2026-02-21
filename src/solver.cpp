@@ -5,15 +5,27 @@
 #include "solver.hpp"
 #include <set>
 
-static int round_double(double num, int max, int min = 0){
-    int ret = static_cast<int>(std::round(num));
-    ret = std::min(ret, max);
-    ret = std::max(ret, min);
-    return ret;
+static std::mt19937 gen(std::random_device{}());
+
+
+static double clip(double in, double min, double max){
+    if(in > max){
+        in = max;
+    }
+    else if(in < min){
+        in = min;
+    }
+    return in;
 }
 
-int &Solver::getParticles(){
-    return _particles;
+static int clip(int in, int min, int max){
+    if(in > max){
+        in = max;
+    }
+    else if(in < min){
+        in = min;
+    }
+    return in;
 }
 
 int &Solver::getMaxIterations(){
@@ -24,29 +36,41 @@ int &Solver::getCurrentIteration(){
     return _currentIteration;
 }
 
-void Solver::setParticles(int particles){
-    _particles = particles;
+int &Solver::getMaxRuns(){
+    return _maxRuns;
+}
+
+int &Solver::getCurrentRun(){
+    return _currentRun;
 }
 
 void Solver::setMaxIterations(int iterations){
     _maxIterations = iterations;
 }
 
+void Solver::setMaxRuns(int runs){
+    _maxRuns = runs;
+}
+
 void Solver::Init(){
-    Particle::resetBestValue();
-    particles.clear();
-    int dimensionsNumber = _subjects.size();
-    for(int i = 0; i < _particles; ++i){
-        Particle p(dimensionsNumber, _subjects);
-        p._includeLectures = _includeLectures;
-        particles.push_back(p);
-    }
-    for(int i = 0; i < _particles; ++i){
-        particles[i].Init();
-    }
-    _currentIteration = 0;
     _running = true;
-    _solution = false;
+    _currentIteration = 0;
+    _currentTemperature = _startTemperature;
+    _currentPosition.clear();
+
+    // generate first random solution
+    for(int i = 0; i < _subjects.size(); i++){
+        int groupNumber = _subjects[i]->getGroupsNumber();
+        if(_subjects[i]->getFixedGroup() != nullptr){
+            int index = _subjects[i]->getGroupIndex(_subjects[i]->getFixedGroup());
+            _currentPosition.push_back(index);
+            continue;
+        }
+        int random_value = static_cast<int>(std::round(_realDist(gen) * (groupNumber - 1)));
+        _currentPosition.push_back(random_value);
+    }
+    double value = costFun(_currentPosition);
+    _currentValue = value;
 }
 
 bool Solver::isRunning(){
@@ -59,146 +83,122 @@ bool Solver::hasSolution(){
 
 void Solver::setSubjects(std::vector<Subject *> subjects){
     _subjects = subjects;
+    _dimensionNumber = subjects.size();
 }
 
 void Solver::getSolution(){
-    int dimensionsNumber = _subjects.size();
-    _chosenGroups = particles[0].getSolution();
-    for(auto gr : _chosenGroups){
-        gr->subject->setChosenGroup(gr);
+    std::vector<int> temp = _currentPosition;
+    if(!_bestPosition.empty()){
+        temp = _bestPosition;
+    }
+    for(int i = 0; i < temp.size(); i++){
+        if(_subjects[i]->getGroupsNumber() == 0){
+            continue;
+        }
+        Group& group = _subjects[i]->getGroup(temp[i]);
+        _subjects[i]->setChosenGroup(&group);
     }
 }
 
 void Solver::setIncludeLectures(bool include){
-    _includeLectures = true;
+    _includeLectures = include;
 }
 
 void Solver::stepIteration(){
     if(_currentIteration >= _maxIterations){
-        _running = false;    
-        _solution = true;
-        return;
+        if(_currentValue <= _bestValue){
+            _bestValue = _currentValue;
+            _bestPosition = _currentPosition;
+        }
+        if(_currentRun >= _maxRuns){
+            _running = false;    
+            _solution = true;
+            return;
+        }
+        _currentRun++;
+        Init();
     }
-    for(int i = 0; i < _particles; i++){
-        particles[i].calculatePosition();
+    double method = _realDist(gen) * 100.0;
+
+    double k = 1 + (_currentTemperature / _startTemperature) * (_kMax - 1);
+
+    std::vector<int> new_position = _currentPosition;
+
+    int help_poor_soul = _currentValue/_overlappingPenalty * 10;
+
+    if(method > (60-help_poor_soul)){
+        // Change two values
+        _indexDist = std::uniform_int_distribution<int>(0, _dimensionNumber - 1);
+        int index1 = _indexDist(gen);
+        int index2 = _indexDist(gen);
+
+        double delta1 = ((_realDist(gen)*2.0) - 1) * k;
+        double delta2 = ((_realDist(gen)*2.0) - 1) * k;
+
+        if(_subjects[index1]->getFixedGroup() == nullptr){
+            int value1 = static_cast<int>(std::round(new_position[index1] + delta1));
+            int maxValue1 = _subjects[index1]->getGroupsNumber() - 1;
+            new_position[index1] = clip(value1, 0, maxValue1);
+        }
+        if(_subjects[index2]->getFixedGroup() == nullptr){
+            int value2 = static_cast<int>(std::round(new_position[index2] + delta2));
+            int maxValue2 = _subjects[index2]->getGroupsNumber() - 1;
+            new_position[index2] = clip(value2, 0, maxValue2);
+        }
     }
+    else{
+        // Change one value
+        _indexDist = std::uniform_int_distribution<int>(0, _dimensionNumber - 1);
+        int index = _indexDist(gen);
+        index = clip(index, 0, _dimensionNumber-1);
+        if(_subjects[index]->getFixedGroup() == nullptr){
+            double delta = ((_realDist(gen)*2.0) - 1) * k;
+            int value = static_cast<int>(std::round(new_position[index] + delta));
+            int maxValue = _subjects[index]->getGroupsNumber() - 1;
+            new_position[index] = clip(value, 0, maxValue);
+        }
+    }
+    double new_value = costFun(new_position);
+    double delta = new_value - _currentValue;
+    if(delta < 0){
+        _currentPosition = new_position;
+        _currentValue = new_value;
+    }
+    else{
+        double random_acceptance = _realDist(gen);
+        double temperature_coefficient = std::exp(-delta/_currentTemperature);
+        if(random_acceptance < temperature_coefficient){
+            _currentPosition = new_position;
+            _currentValue = new_value;
+        }
+    }
+    //std::cout << "TEMP: " << _currentTemperature << "\n";
+    _currentTemperature = _alpha * _currentTemperature;
     _currentIteration ++;
 }
 
 void Solver::reset(){
-    _chosenGroups.clear();
     _subjects.clear();
-    particles.clear();
 
-    _currentIteration = 0;
     _running = false;
     _solution = false;
-}
-
-Particle::Particle(const Particle &p){
-    _position = p._position;
-    _velocity = p._velocity;
-    _subjects = p._subjects;
-    _bestPosition = p._bestPosition;
-
-    _bestValue = p._bestValue; 
-    _dimensionNumber = p._dimensionNumber;
-}
-
-Particle::Particle(){
-
-}
-
-Particle::~Particle(){
-    _subjects.clear();
-    _position.clear();
+    _currentRun = 0;
+    _currentIteration = 0;
+    _currentPosition.clear();
+    _currentValue = std::numeric_limits<double>::max();
     _bestPosition.clear();
-    _velocity.clear();
+    _bestValue = std::numeric_limits<double>::max();
 }
 
-std::vector<double> Particle::_globalBestPosition {};
-
-double Particle::_globalBestValue = std::numeric_limits<double>::max();
-
-void Particle::Init(){
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<> dist(0, 1);
-    for(int i = 0; i < _dimensionNumber; i++){
-        if(!_subjects[i]){
-            // Throw some exeption
-            return;
-        }
-        Group* fixed_group = _subjects[i]->getFixedGroup();
-        if(fixed_group != nullptr){
-            _position[i] = static_cast<double>(_subjects[i]->getGroupIndex(fixed_group));
-            _velocity[i] = 0.0;
-            continue;
-        }
-        int groupsNumber = _subjects[i]->getGroupsNumber();
-        _position[i] = dist(gen) * groupsNumber;
-        _velocity[i] = ((dist(gen)*2.0) - 1.0) * _maxVelocity;
-    }
-    
-    _bestPosition = _position;
-    _bestValue = costFun();
-    if(_bestValue < _globalBestValue){
-        _globalBestValue = _bestValue;
-        _globalBestPosition = _bestPosition;
-    }
-}
-
-double Particle::calculatePosition(){
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<> dist(0, 1);
-    
-    for(int i = 0; i < _dimensionNumber; i++){
-        if(_subjects[i]->getFixedGroup() != nullptr){
-            continue;
-        }
-        _velocity[i] = _inertion * _velocity[i] 
-        + _localBestAttraction * dist(gen) * (_bestPosition[i] - _position[i])
-        + _globalBestAttraction * dist(gen) * (_globalBestPosition[i] - _position[i]);
-
-        _position[i] = _position[i] + _velocity[i];
-        
-        int groupsNumber = _subjects[i]->getGroupsNumber();
-        if(_position[i] < 0){
-            _position[i] = 0;
-            _velocity[i] = -_velocity[i];
-        }
-        else if(_position[i] > groupsNumber - 1){
-            _position[i] = static_cast<double>(groupsNumber - 1);
-            _velocity[i] = -_velocity[i];
-        }
-    }
-    double value = costFun();
-    if(value < _bestValue){
-        _bestValue = value;
-        _bestPosition = _position;
-    }
-    if(value < _globalBestValue){
-        _globalBestValue = value;
-        _globalBestPosition = _position;
-    }
-    return value;
-}
-
-double Particle::costFun(){
+double Solver::costFun(std::vector<int>& position){
     const int days_number = 5;
-    std::vector<int> current_position (_dimensionNumber);
     std::vector<std::vector<Group*>> groupsInDay (days_number);
-
-    // Position correction
+    
     for(int i = 0; i < _dimensionNumber; ++i){
         int groupsNumber = _subjects[i]->getGroupsNumber();
 
-        int pos = round_double(_position[i], groupsNumber - 1, 0);
-        current_position[i] = pos;
-
-        if(_subjects[i]->getGroupsNumber() != 0){
-            Group& group = _subjects[i]->getGroup(current_position[i]);
+        if(groupsNumber != 0){
+            Group& group = _subjects[i]->getGroup(position[i]);
             groupsInDay[group.weekDay].push_back(&group);
         }
         if(_includeLectures){
@@ -208,59 +208,71 @@ double Particle::costFun(){
             }
         }
     }
+
     BubblesortGroups(groupsInDay);
 
     int collisions{0};
     int days{0};
     int time{0};
 
-    for(int i = 0; i < days_number; ++i){
+   for(int i = 0; i < days_number; ++i){
         if (groupsInDay[i].size() == 0){
             continue;
         }
         days++;
+        Group* first_group = groupsInDay[i][0];
+        Group* last_group = groupsInDay[i][groupsInDay[i].size() - 1];
+
+        if(first_group && last_group){
+            int start_time = first_group->startHour * 60 + first_group->startMin;
+            int end_time = last_group->endHour * 60 + last_group->endMin;
+            time += end_time - start_time;
+        }
+
         for(int j = 0; j < groupsInDay[i].size(); ++j){
             Group* group = groupsInDay[i][j];
 
-            int startTime1 = group->startHour * 60 + group->startMin;
-            int endTime1 = group->endHour * 60 + group->endMin;
+            for(int k = j + 1; k < groupsInDay[i].size(); ++k){
 
-            time += endTime1 - startTime1;
+                auto g1 = groupsInDay[i][j];
+                auto g2 = groupsInDay[i][k];
 
-            if(j != groupsInDay[i].size() - 1){
-                Group* next_group = groupsInDay[i][j + 1];
+                int s1 = g1->startHour * 60 + g1->startMin;
+                int e1 = g1->endHour * 60 + g1->endMin;
+                int s2 = g2->startHour * 60 + g2->startMin;
+                int e2 = g2->endHour * 60 + g2->endMin;
 
-                int startTime2 = next_group->startHour * 60 + next_group->startMin;
-                int endTime2 = next_group->endHour * 60 + next_group->endMin;
-
-                // Overlapping
-                if(startTime1 < endTime2 && startTime2 < endTime1){
+                if(s1 < e2 && s2 < e1){
                     collisions++;
-                }
-                else{
-                    time += startTime2 - endTime1;
                 }
             }
         }
     }
 
-    // Penalty
-    double colissions_penalty = static_cast<double>(collisions) * _overlappingPenalty;
-    double time_penalty = static_cast<double>(time) / 1000.0 * _timePenalty;
-    double days_penalty = static_cast<double>(days) / 5.0 * _dayPenalty;
+    // for(int i = 0; i < days_number; ++i){
+    //     std::cout << i << " DAY \n";
+    //     for(auto& group : groupsInDay[i]){
+    //         std::cout << group->subject->getName();
+    //         if(group->lecture){
+    //             std::cout << " Lecture";
+    //         }
+    //         std::cout << ",\n";
+    //     }
+    //     std::cout <<  "\n";
+    // }
 
+
+    double colissions_penalty = static_cast<double>(collisions) * _overlappingPenalty;
+    double time_penalty = static_cast<double>(time) / (13.0 * 60.0 * 5.0) * _timePenalty;
+    double days_penalty = static_cast<double>(days) / 5.0 * _dayPenalty;
+    //std::cout << colissions_penalty << ", " << time_penalty << ", " << days_penalty << "\n";
     return colissions_penalty + time_penalty + days_penalty;
 }
 
-std::vector<Group *> Particle::getSolution(){
-    std::vector<Group*> groups;
-    for(int i = 0; i < _dimensionNumber; i++){
-        const int global_best_pos = round_double(_globalBestPosition[i], _subjects[i]->getGroupsNumber() - 1, 0);
-        if(_subjects[i]->getGroupsNumber() != 0){
-            Group* group = &(_subjects[i]->getGroup(global_best_pos));
-            groups.push_back(group);
-        }
-    }
-    return groups;
+void Solver::setStartTemperature(double temperature){
+    _startTemperature = temperature;
 }
 
+void Solver::setAlpha(double alpha){
+    _alpha = alpha;
+}

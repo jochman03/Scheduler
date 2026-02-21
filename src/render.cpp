@@ -174,8 +174,11 @@ void WindowClass::DrawParameters(){
         ImGui::BeginChild("Solver", parameters_size, true);
         ImGui::Text("Solver Parameters");
 
-        ImGui::InputInt("Particles", &particles);
+        ImGui::InputDouble("Temperature", &startTemperature, 100.0, 1000.0, "%.0f");
+        ImGui::InputDouble("Alpha", &alpha, 0.05, 0.1, "%.2f");
+
         ImGui::InputInt("Iterations", &iterations);
+        ImGui::InputInt("Runs", &runs);
         ImGui::Checkbox("Include lectures", &include_lectures);
 
         if(ImGui::Button("Start simulation")){
@@ -187,9 +190,11 @@ void WindowClass::DrawParameters(){
             }
             gotSolution = true;
             _solver.reset();
-            _solver.setParticles(particles);
             _solver.setMaxIterations(iterations);
             _solver.setIncludeLectures(include_lectures);
+            _solver.setAlpha(alpha);
+            _solver.setMaxRuns(runs);
+            _solver.setStartTemperature(startTemperature);
             _solver.setSubjects(chosenSubjects);
             _solver.Init();
         }
@@ -202,6 +207,13 @@ void WindowClass::DrawParameters(){
 
         const auto width = ImGui::GetWindowSize().x / 2.0;
         ImGui::ProgressBar(progressFraction, ImVec2(width, 0));
+
+        float runProgressFraction = static_cast<float>(_solver.getCurrentRun()) / static_cast<float>(_solver.getMaxRuns());
+        std::string runProgressText = std::to_string(_solver.getCurrentRun()) + " / " + std::to_string(_solver.getMaxRuns());
+        ImGui::Text(runProgressText.data());
+
+        ImGui::ProgressBar(runProgressFraction, ImVec2(width, 0));
+
 
         if(_solver.hasSolution()){
             if(gotSolution){
@@ -406,14 +418,19 @@ void render(WindowClass &window_obj){
 
 void WindowClass::LoadFromFile(std::string filename){
     std::ifstream input(filename);
+    if(!input){
+        return;
+    }
     json loaded_data;
     loaded_data << input;
     Clear();
 
     for (auto& [subject_name, subject_data] : loaded_data.items()) {
         Subject sub(subject_name);
+        bool format_ok {false};
         // Load groups
         if(subject_data.contains("groups")){
+            format_ok = true;
             auto& groups = subject_data["groups"];
             for (auto& [group_id, group_datas] : groups.items()) {
                 const auto& group_data = group_datas[0];
@@ -427,6 +444,7 @@ void WindowClass::LoadFromFile(std::string filename){
         }
         // Load lecture
         if(subject_data.contains("lecture")){
+            format_ok = true;
             auto& lecture = subject_data["lecture"][0];
             Group group(1, lecture["start_h"], lecture["start_m"], 
                 lecture["end_h"], lecture["end_m"], lecture["day"]);
@@ -435,6 +453,9 @@ void WindowClass::LoadFromFile(std::string filename){
             group.online = lecture["online"];
             group.lecture = true;
             sub.addLecture(group);
+        }
+        if(!format_ok){
+            return;
         }
         selected_subjects.push_back(1);
         subjects.push_back(sub);
