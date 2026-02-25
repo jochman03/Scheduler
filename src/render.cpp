@@ -417,9 +417,13 @@ void render(WindowClass &window_obj){
 }
 
 void WindowClass::LoadFromFile(std::string filename){
+    if(filename.size() < 1){
+        throw std::exception("Filename cannot be empty");
+    }
+
     std::ifstream input(filename);
     if(!input){
-        return;
+        throw std::exception("There is no such file");
     }
     json loaded_data;
     loaded_data << input;
@@ -437,8 +441,15 @@ void WindowClass::LoadFromFile(std::string filename){
                 int id = std::stoi(group_id);
                 Group group(id, group_data["start_h"], group_data["start_m"], 
                     group_data["end_h"], group_data["end_m"], group_data["day"]);
-                group.teacher = group_data["teacher"];
-                group.place = group_data["place"];
+                if(group_data.contains("teacher")){
+                    group.teacher = group_data["teacher"];
+                }
+                if(group_data.contains("place")){
+                    group.place = group_data["place"];
+                }
+                if(group_data.contains("online")){
+                    group.online = group_data["online"];
+                }
                 sub.addGroup(group);
             }
         }
@@ -448,14 +459,20 @@ void WindowClass::LoadFromFile(std::string filename){
             auto& lecture = subject_data["lecture"][0];
             Group group(1, lecture["start_h"], lecture["start_m"], 
                 lecture["end_h"], lecture["end_m"], lecture["day"]);
-            group.teacher = lecture["teacher"];
-            group.place = lecture["place"];
-            group.online = lecture["online"];
+            if(lecture.contains("teacher")){
+                group.teacher = lecture["teacher"];
+            }
+            if(lecture.contains("place")){
+                group.place = lecture["place"];
+            }
+            if(lecture.contains("online")){
+                group.online = lecture["online"];
+            }
             group.lecture = true;
             sub.addLecture(group);
         }
         if(!format_ok){
-            return;
+            throw std::exception("File is in wrong format");
         }
         selected_subjects.push_back(1);
         subjects.push_back(sub);
@@ -494,7 +511,37 @@ void WindowClass::Clear(){
 }
 
 void WindowClass::SaveToFile(std::string filename){
-    
+    if(filename.size() < 1){
+        throw std::out_of_range("Filename cannot be empty");
+    }
+
+    std::ofstream file(filename);
+
+    if(!file.is_open()){
+        throw std::out_of_range("Cannot open file");
+    }
+    if(!_solver.hasSolution()){
+        throw std::out_of_range("Nothing to save");
+    }
+    json data_json;
+    for(auto& subject : subjects){
+        json group_json;
+        Group* group = subject.getChosenGroup();
+        if(!group){
+            continue;
+        }
+        group_json["day"] = group->weekDay;
+        group_json["start_h"] = group->startHour;
+        group_json["start_m"] = group->startMin;
+        group_json["end_h"] = group->endHour;
+        group_json["end_m"] = group->endMin;
+        group_json["teacher"] = group->teacher;
+        group_json["place"] = group->place;
+        group_json["online"] = group->online;
+        data_json[subject.getName()]["groups"][std::to_string(group->id)].push_back(group_json); 
+    }
+
+    file << data_json;
 }
 
 void WindowClass::DrawSavePopup(){
@@ -508,8 +555,19 @@ void WindowClass::DrawSavePopup(){
 
         ImGui::InputText("Filename", filenameBuffer,
              sizeof(filenameBuffer));
+        if(drawPopUpException){
+            ImGui::Text(popUpException.data());
+        }
         if(ImGui::Button("Save", popUpButtonSize)){
-            SaveToFile(filenameBuffer);
+            try{
+                SaveToFile(filenameBuffer);
+                drawPopUpException = false;
+                ImGui::CloseCurrentPopup();
+            }
+            catch (std::exception& ex){
+                popUpException = ex.what();
+                drawPopUpException = true;
+            }
             ImGui::CloseCurrentPopup();
         }
         ImGui::SameLine();
@@ -530,10 +588,21 @@ void WindowClass::DrawLoadPopup(){
 
         ImGui::InputText("Filename", filenameBuffer,
              sizeof(filenameBuffer));
-        if(ImGui::Button("Load", popUpButtonSize)){
-            LoadFromFile(filenameBuffer);
-            ImGui::CloseCurrentPopup();
+        if(drawPopUpException){
+            ImGui::Text(popUpException.data());
         }
+        if(ImGui::Button("Load", popUpButtonSize)){
+            try {
+                LoadFromFile(filenameBuffer);
+                drawPopUpException = false;
+                ImGui::CloseCurrentPopup();
+            }
+            catch (std::exception& ex){
+                popUpException = ex.what();
+                drawPopUpException = true;
+            }
+        }
+
         ImGui::SameLine();
         if(ImGui::Button("Cancel", popUpButtonSize) || esc_pressed){
             ImGui::CloseCurrentPopup();
@@ -612,9 +681,9 @@ void WindowClass::CheckCollisions(std::vector<std::vector<Group*>>& group, bool 
             std::vector<int> columns_end;
 
             for(auto j = block_start; j < block_end; ++j){
-                Group* group = dayGroups[j];
-                auto start_time = group->startHour * 60 + group->startMin;
-                auto end_time   = group->endHour * 60 + group->endMin;
+                Group* g = dayGroups[j];
+                auto start_time = g->startHour * 60 + g->startMin;
+                auto end_time   = g->endHour * 60 + g->endMin;
 
                 int chosen_col = -1;
 
@@ -632,10 +701,10 @@ void WindowClass::CheckCollisions(std::vector<std::vector<Group*>>& group, bool 
                     columns_end[chosen_col] = end_time;
                 }
                 if(!chosen){
-                    group->renderIndex = chosen_col;
+                    g->renderIndex = chosen_col;
                 }
                 else{
-                    group->chosenRenderIndex = chosen_col;
+                    g->chosenRenderIndex = chosen_col;
                 }
             }
 

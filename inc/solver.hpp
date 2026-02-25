@@ -26,10 +26,6 @@ private:
 
     double _kMax {3};
 
-    int _wastedTime {0};
-    int _collisions {0};
-    int _wastedDays {0};
-
     std::vector<int> _currentPosition;
     double _currentValue {0};
 

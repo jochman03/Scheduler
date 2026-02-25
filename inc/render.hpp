@@ -65,6 +65,9 @@ private:
     double alpha {0.95};
     double startTemperature {20000};
 
+    bool drawPopUpException{false};
+    std::string popUpException {};
+
     void DrawLoad();
     void DrawParameters();
     void DrawCalendar();

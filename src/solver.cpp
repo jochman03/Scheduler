@@ -124,10 +124,10 @@ void Solver::stepIteration(){
 
     std::vector<int> new_position = _currentPosition;
 
-    int help_poor_soul = _currentValue/_overlappingPenalty * 10;
+    int collision_update_chance = static_cast<int>(_currentValue/_overlappingPenalty) * 10;
 
-    if(method > (60-help_poor_soul)){
-        // Change two values
+    if(method > (60 - collision_update_chance)){
+        // Change two positions
         _indexDist = std::uniform_int_distribution<int>(0, _dimensionNumber - 1);
         int index1 = _indexDist(gen);
         int index2 = _indexDist(gen);
@@ -147,7 +147,7 @@ void Solver::stepIteration(){
         }
     }
     else{
-        // Change one value
+        // Change one position
         _indexDist = std::uniform_int_distribution<int>(0, _dimensionNumber - 1);
         int index = _indexDist(gen);
         index = clip(index, 0, _dimensionNumber-1);
@@ -179,7 +179,6 @@ void Solver::stepIteration(){
 
 void Solver::reset(){
     _subjects.clear();
-
     _running = false;
     _solution = false;
     _currentRun = 0;
